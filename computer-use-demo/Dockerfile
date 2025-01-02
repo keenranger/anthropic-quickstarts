@@ -1,7 +1,22 @@
 FROM docker.io/ubuntu:22.04
 
+ARG LOCALE=ko_KR.UTF-8
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBIAN_PRIORITY=high
+ENV LANG=$LOCALE
+ENV LANGUAGE=${LOCALE%.*}:${LOCALE%.*}
+ENV LC_ALL=$LOCALE
+
+RUN apt-get update && \
+    apt-get install -y locales fonts-nanum fonts-noto-cjk fontconfig && \
+    fc-cache -fv && \
+    apt-get clean
+
+# Generate and update the locale
+RUN echo "$LOCALE UTF-8" > /etc/locale.gen && \
+    locale-gen && \
+    update-locale LANG="$LOCALE" LANGUAGE="${LOCALE%.*}:${LOCALE%.*}" LC_ALL="$LOCALE"
 
 RUN apt-get update && \
     apt-get -y upgrade && \
@@ -35,7 +50,8 @@ RUN apt-get update && \
     net-tools \
     netcat \
     # PPA req
-    software-properties-common && \
+    software-properties-common \
+    locales && \
     # Userland apps
     sudo add-apt-repository ppa:mozillateam/ppa && \
     sudo apt-get install -y --no-install-recommends \
